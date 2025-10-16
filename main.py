@@ -95,42 +95,54 @@ class MuJoCoMotionPlayer:
             # Advance frame
             self.current_frame += 1
 
-            # Handle looping
+            # Check if reached the end
             if self.current_frame >= self.num_frames:
-                if self.loop_motion:
-                    self.current_frame = 0
-                else:
-                    self.current_frame = self.num_frames - 1
-                    self.is_playing = False  # Stop at end
-
+                self.current_frame = self.num_frames - 1
+                self.is_playing = False  # Pause at end
+                print("⏸ Reached end of motion - paused")
+            
             self._set_robot_state(self.current_frame)
             self.last_update_time = current_time
             
-            # Print progress
-            time_sec = self.current_frame / self.fps
-            progress_pct = (self.current_frame / self.num_frames) * 100
-            status = "▶" if self.is_playing else "⏸"
-            print(f"{status} Frame {self.current_frame + 1}/{self.num_frames} | "
-                  f"{time_sec:.2f}s/{self.duration:.2f}s | "
-                  f"{progress_pct:.1f}% | "
-                  f"Speed: {self.playback_speed:.2f}x")
+            # Print progress (only if still playing)
+            if self.is_playing:
+                time_sec = self.current_frame / self.fps
+                progress_pct = (self.current_frame / self.num_frames) * 100
+                status = "▶"
+                print(f"{status} Frame {self.current_frame + 1}/{self.num_frames} | "
+                      f"{time_sec:.2f}s/{self.duration:.2f}s | "
+                      f"{progress_pct:.1f}% | "
+                      f"Speed: {self.playback_speed:.2f}x")
 
     def toggle_play_pause(self) -> None:
-        """Toggle play/pause."""
-        self.is_playing = not self.is_playing
+        """Toggle play/pause. If at end and pressing play, restart from beginning."""
+        # If currently paused at the end and user wants to play, restart from beginning
+        if not self.is_playing and self.current_frame >= self.num_frames - 1:
+            self.current_frame = 0
+            self._set_robot_state(0)
+            self.is_playing = True
+            print("▶ Restarting from beginning")
+        else:
+            # Normal toggle
+            self.is_playing = not self.is_playing
+            status = "▶ Playing" if self.is_playing else "⏸ Paused"
+            current_time = self.current_frame / self.fps
+            print(f"{status} at {current_time:.2f}s (frame {self.current_frame + 1}/{self.num_frames})")
+        
         self.last_update_time = time.time()
-        status = "▶ Playing" if self.is_playing else "⏸ Paused"
-        current_time = self.current_frame / self.fps
-        print(f"{status} at {current_time:.2f}s (frame {self.current_frame + 1}/{self.num_frames})")
 
     def jump_frames(self, num_frames: int, pause: bool) -> None:
-        """Jump forward/backward by delta frames."""
-        self.current_frame = (self.current_frame + num_frames) % self.num_frames
+        """Jump forward/backward by delta frames (clamped to start/end, no loop)."""
+        self.current_frame = self.current_frame + num_frames
+        # Clamp to boundaries instead of looping
+        self.current_frame = max(0, min(self.current_frame, self.num_frames - 1))
         self._set_robot_state(self.current_frame)
         self.last_update_time = time.time()
         if pause:
             self.is_playing = False
-        print(f"⏩ Frame {self.current_frame + 1}/{self.num_frames}")
+        
+        time_sec = self.current_frame / self.fps
+        print(f"⏩ Frame {self.current_frame + 1}/{self.num_frames} ({time_sec:.2f}s)")
 
     def change_speed(self, factor: float) -> None:
         """Change playback speed by multiplying by factor."""

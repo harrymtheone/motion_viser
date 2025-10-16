@@ -30,7 +30,7 @@ python main.py
 
 ### Configuration
 
-Edit the paths in `mj_player.py`:
+Edit the paths in `main.py`:
 
 ```python
 player = MuJoCoMotionPlayer(
@@ -52,8 +52,7 @@ Motion data is stored in `.npz` files with:
 motion_viser/
 ├── requirements.txt       # Python dependencies
 ├── README.md             # This file
-├── mj_player.py          # MuJoCo player with keyboard controls
-├── main.py               # Viser-based visualization
+├── main.py               # MuJoCo player with keyboard controls
 └── T1/                   # Robot model and data
     ├── robot/
     │   └── T1_serial.xml # MuJoCo robot model
