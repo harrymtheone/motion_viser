@@ -16,12 +16,12 @@ class MotionPlayer:
         Args:
             server: Viser server instance
             urdf_path: Path to the robot URDF file
-            motion_data_path: Path to the motion default (.npz file)
+            motion_data_path: Path to the motion data (.npz file)
         """
         self.server = server
         self.urdf_path = urdf_path
 
-        # Load motion default
+        # Load motion data
         self._load_motion_data(motion_data_path)
 
         # Load robot model
@@ -44,16 +44,16 @@ class MotionPlayer:
         print(f"Server: http://localhost:8080")
 
     def _load_motion_data(self, motion_data_path: str) -> None:
-        """Load motion default from npz file."""
+        """Load motion data from npz file."""
         data = np.load(motion_data_path, allow_pickle=True)
 
-        # Extract position default
+        # Extract position data
         qpos = data["qpos"]
         self.root_pos = qpos[:, :3]  # Root position (x, y, z)
         self.root_quat = qpos[:, 3:7]  # Root quaternion (w, x, y, z)
         self.joint_pos = qpos[:, 7:]  # Joint positions
 
-        # Extract velocity default
+        # Extract velocity data
         qvel = data["qvel"]
         self.root_lin_vel = qvel[:, :3]  # Root linear velocity
         self.root_ang_vel = qvel[:, 3:6]  # Root angular velocity
@@ -154,7 +154,7 @@ class MotionPlayer:
         Update robot pose to match the specified frame.
 
         Args:
-            frame_idx: Frame index in the motion default
+            frame_idx: Frame index in the motion data
         """
         # Ensure frame index is valid
         frame_idx = frame_idx % self.num_frames

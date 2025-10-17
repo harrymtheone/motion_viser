@@ -22,7 +22,7 @@ import numpy as np
 class MuJoCoMotionPlayer:
     """MuJoCo Motion Player with keyboard controls."""
 
-    def __init__(self, model_path: str, motion_data_path: str):
+    def __init__(self, model_path: str, motion_data_path: str, lookat_id: int):
         """
         Initialize the MuJoCo Motion Player.
         
@@ -30,6 +30,8 @@ class MuJoCoMotionPlayer:
             model_path: Path to the MuJoCo model XML file
             motion_data_path: Path to the motion data (.npz file)
         """
+        self.lookat_id = lookat_id
+
         # Load motion data
         self._load_motion_data(motion_data_path)
 
@@ -51,8 +53,11 @@ class MuJoCoMotionPlayer:
         """Load motion data from npz file."""
         data = np.load(motion_data_path, allow_pickle=True)
 
-        self.qpos_data = data["qpos"]
-        self.qvel_data = data["qvel"]
+        self.qpos_data = data["qpos"][:, self.lookat_id]
+        self.qvel_data = data["qvel"][:, self.lookat_id]
+
+        root_pos_mean = np.mean(self.qpos_data[:, :2], axis=0)
+        self.qpos_data[:, :2] -= root_pos_mean
 
         self.fps = float(data['frequency'])
         self.num_frames = len(self.qpos_data)
@@ -230,7 +235,9 @@ def main():
     player = MuJoCoMotionPlayer(
         model_path="T1/robot/T1_serial.xml",
         # motion_data_path="T1/data/stepinplace1.npz",
-        motion_data_path="motion_41.npz",
+        motion_data_path="motion_374.npz",
+
+        lookat_id=4,
     )
 
     player.run()
