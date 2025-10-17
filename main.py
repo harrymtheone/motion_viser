@@ -28,9 +28,9 @@ class MuJoCoMotionPlayer:
         
         Args:
             model_path: Path to the MuJoCo model XML file
-            motion_data_path: Path to the motion data (.npz file)
+            motion_data_path: Path to the motion default (.npz file)
         """
-        # Load motion data
+        # Load motion default
         self._load_motion_data(motion_data_path)
 
         # Load MuJoCo model
@@ -48,7 +48,7 @@ class MuJoCoMotionPlayer:
         print(f"  DOFs: {self.model.nq} (qpos), {self.model.nv} (qvel)")
 
     def _load_motion_data(self, motion_data_path: str) -> None:
-        """Load motion data from npz file."""
+        """Load motion default from npz file."""
         data = np.load(motion_data_path, allow_pickle=True)
 
         self.qpos_data = data["qpos"]
@@ -74,7 +74,7 @@ class MuJoCoMotionPlayer:
         qpos = self.qpos_data[frame_idx]
         qvel = self.qvel_data[frame_idx]
 
-        # Copy data (handle size mismatches gracefully)
+        # Copy default (handle size mismatches gracefully)
         copy_len = min(len(qpos), self.model.nq)
         self.data.qpos[:copy_len] = qpos[:copy_len]
 
@@ -229,7 +229,7 @@ def main():
     """Main entry point."""
     player = MuJoCoMotionPlayer(
         model_path="T1/robot/T1_serial.xml",
-        motion_data_path="T1/data/walkturn.npz",
+        motion_data_path="T1/default/stepinplace1.npz",
     )
 
     player.run()
